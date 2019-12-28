@@ -6,10 +6,11 @@ channels:
 dependencies:
   - pytorch
   - torchvision
-  - cuda92
+  - cudatoolkit=10.0
   - fastprogress
   - fastai
   - jupyter
+  - pip
   - pip:
       - nvidia-ml-py3
       - dataclasses
