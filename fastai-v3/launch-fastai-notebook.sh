@@ -1,5 +1,5 @@
 #!/bin/bash
-state_running=`docker inspect -f '{{.State.Running}}' fastai-instance`
+state_running=`docker inspect -f '{{.State.Running}}' fastai-instance > /dev/null 2>&1`
 is_exist=$?
 
 if [[ $is_exist == 1 ]]; then

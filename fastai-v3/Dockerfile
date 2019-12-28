@@ -22,13 +22,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 ENV LD_LIBRARY_PATH /usr/local/nvidia/lib:/usr/local/nvidia/lib64
 ENV PYTHON_VERSION=3.6
 
+# Install conda
 RUN curl -o ~/miniconda.sh -O  https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh  && \
      chmod +x ~/miniconda.sh && \
      ~/miniconda.sh -b -p /opt/conda && \
      rm ~/miniconda.sh && \
     /opt/conda/bin/conda install conda-build
 
-ENV PATH=$PATH:/opt/conda/bin/
+WORKDIR /notebooks
+RUN chmod -R a+w /notebooks
 
 # Create user and home directory.
 # This is necessary so we can run the notebook as current user and edit files
@@ -36,21 +38,23 @@ ENV PATH=$PATH:/opt/conda/bin/
 ENV USER fastai
 ENV UID 1000
 ENV HOME /home/$USER
-RUN groupadd -r -g $UID $USER && useradd -u $UID -g $USER --create-home --home-dir $HOME $USER && chown -R $USER:$USER $HOME
+RUN groupadd -r -g $UID $USER && \
+    useradd -u $UID -g $USER --create-home --home-dir $HOME $USER && \
+    chown -R $USER:$USER $HOME
+USER $USER
+WORKDIR $HOME
+
+ENV PATH=$PATH:/opt/conda/bin/
 
 # Create Enviroment
-COPY enviroment.yaml /enviroment.yaml
-RUN conda env create -f enviroment.yaml
+COPY enviroment.yaml $HOME/enviroment.yaml
+RUN conda env create -f $HOME/enviroment.yaml
 
-WORKDIR /notebooks
 # Activate Source
 CMD source activate fastai
-CMD source ~/.bashrc
+CMD source $HOME/.bashrc
 
-RUN chmod -R a+w /notebooks
-WORKDIR /notebooks
+COPY config.yml $HOME/.fastai/config.yml
+COPY run.sh $HOME/run.sh
 
-COPY config.yml /root/.fastai/config.yml
-COPY run.sh /run.sh
-
-CMD ["/run.sh"]
+CMD $HOME/run.sh
