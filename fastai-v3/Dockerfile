@@ -29,7 +29,15 @@ RUN curl -o ~/miniconda.sh -O  https://repo.continuum.io/miniconda/Miniconda3-la
     /opt/conda/bin/conda install conda-build
 
 ENV PATH=$PATH:/opt/conda/bin/
+
+# Create user and home directory.
+# This is necessary so we can run the notebook as current user and edit files
+# that we mount. Otherwise, the files that are edited would belong to root.
 ENV USER fastai
+ENV UID 1000
+ENV HOME /home/$USER
+RUN groupadd -r -g $UID $USER && useradd -u $UID -g $USER --create-home --home-dir $HOME $USER && chown -R $USER:$USER $HOME
+
 # Create Enviroment
 COPY enviroment.yaml /enviroment.yaml
 RUN conda env create -f enviroment.yaml
@@ -41,9 +49,6 @@ CMD source ~/.bashrc
 
 RUN chmod -R a+w /notebooks
 WORKDIR /notebooks
-
-# Clone course-v3
-RUN git clone https://github.com/fastai/course-v3.git
 
 COPY config.yml /root/.fastai/config.yml
 COPY run.sh /run.sh
