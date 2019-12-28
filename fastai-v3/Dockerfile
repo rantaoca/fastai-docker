@@ -32,6 +32,9 @@ RUN curl -o ~/miniconda.sh -O  https://repo.continuum.io/miniconda/Miniconda3-la
 WORKDIR /notebooks
 RUN chmod -R a+w /notebooks
 
+WORKDIR /storage
+RUN chmod -R a+w /storage
+
 # Create user and home directory.
 # This is necessary so we can run the notebook as current user and edit files
 # that we mount. Otherwise, the files that are edited would belong to root.
@@ -47,14 +50,15 @@ WORKDIR $HOME
 ENV PATH=$PATH:/opt/conda/bin/
 
 # Create Enviroment
-COPY enviroment.yaml $HOME/enviroment.yaml
+COPY --chown=$USER enviroment.yaml $HOME/enviroment.yaml
 RUN conda env create -f $HOME/enviroment.yaml
 
 # Activate Source
 CMD source activate fastai
 CMD source $HOME/.bashrc
 
-COPY config.yml $HOME/.fastai/config.yml
-COPY run.sh $HOME/run.sh
+COPY --chown=$USER config.yml $HOME/.fastai/config.yml
+COPY --chown=$USER run.sh $HOME/run.sh
 
+WORKDIR /notebooks
 CMD $HOME/run.sh
